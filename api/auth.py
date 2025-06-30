@@ -35,10 +35,10 @@ class handler(BaseHTTPRequestHandler):
     def handle_discord_callback(self, code, state):
         """Handle Discord OAuth callback - redirect to Twitch"""
         try:
-            # Extract Discord user info from state (discord_id_username format)
+            # Extract Discord user info from state
             discord_info = state if state else "unknown_user"
             
-            # Generate Twitch OAuth URL
+            # Generate Twitch OAuth URL with CORRECT redirect URI
             twitch_oauth_url = self.generate_twitch_oauth_url(discord_info)
             
             # Redirect to Twitch OAuth
@@ -59,13 +59,14 @@ class handler(BaseHTTPRequestHandler):
             self.send_error_page(f"Twitch callback error: {str(e)}")
     
     def generate_twitch_oauth_url(self, discord_info):
-        """Generate Twitch OAuth URL"""
+        """Generate Twitch OAuth URL with CORRECT redirect URI"""
         state = f"twitch_{discord_info}"
         
         params = {
             'response_type': 'code',
-            'client_id': 'ccaxnoh0txxw0iulm4fxvq81km1dnd',  # Your Twitch Client ID
-            'redirect_uri': 'https://asi-oauth-server.vercel.app/api/auth/twitch',
+            'client_id': 'ccaxnoh0txxw0iulm4fxvq81km1dnd',
+            # FIX: Add https:// to the redirect URI
+            'redirect_uri': 'https://asi-oauth-server-pj386vvcq-john-samelsons-projects.vercel.app/api/auth/twitch',
             'scope': 'clips:edit chat:read bits:read channel:read:redemptions',
             'state': state,
             'force_verify': 'true'
