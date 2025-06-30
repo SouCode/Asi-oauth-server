@@ -1,19 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/test.py": {
+      "runtime": "@vercel/python"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/auth/discord",
-      "dest": "/api/auth.py"
-    },
-    {
-      "src": "/api/auth/twitch", 
-      "dest": "/api/auth.py"
-    }
-  ]
+  }
 }
