@@ -1,20 +1,40 @@
 from http.server import BaseHTTPRequestHandler
 import urllib.parse
 import json
-import os
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle OAuth callbacks from Discord and Twitch"""
         
+        # Add CORS headers
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        
         # Parse the URL and query parameters
         url_parts = urllib.parse.urlparse(self.path)
         query_params = urllib.parse.parse_qs(url_parts.query)
         
-        # Get parameters
-        code = query_params.get('code', [None])[0]
-        state = query_params.get('state', [None])[0]
-        error = query_params.get('error', [None])[0]
+        # Debug: Log what we received
+        print(f"DEBUG: Path: {self.path}")
+        print(f"DEBUG: Query params: {query_params}")
+        
+        # Get parameters - handle both single values and lists
+        code = None
+        state = None
+        error = None
+        
+        if 'code' in query_params:
+            code = query_params['code'][0] if isinstance(query_params['code'], list) else query_params['code']
+        if 'state' in query_params:
+            state = query_params['state'][0] if isinstance(query_params['state'], list) else query_params['state']
+        if 'error' in query_params:
+            error = query_params['error'][0] if isinstance(query_params['error'], list) else query_params['error']
+        
+        print(f"DEBUG: Extracted - code: {code}, state: {state}, error: {error}")
+        
+        # End headers
+        self.end_headers()
         
         if error:
             self.send_error_page(f"Authorization error: {error}")
@@ -24,27 +44,37 @@ class handler(BaseHTTPRequestHandler):
             self.send_error_page("Missing authorization code")
             return
         
-        # Determine if this is Discord or Twitch callback based on path
+        # Determine callback type by path
         if url_parts.path == '/api/auth/discord':
             self.handle_discord_callback(code, state)
         elif url_parts.path == '/api/auth/twitch':
             self.handle_twitch_callback(code, state)
         else:
-            self.send_error_page("Invalid callback endpoint")
+            self.send_error_page(f"Invalid callback endpoint: {url_parts.path}")
     
     def handle_discord_callback(self, code, state):
         """Handle Discord OAuth callback - redirect to Twitch"""
         try:
-            # Extract Discord user info from state
-            discord_info = state if state else "unknown_user"
+            # Generate Twitch OAuth URL
+            twitch_oauth_url = self.generate_twitch_oauth_url(state or "discord_user")
             
-            # Generate Twitch OAuth URL with CORRECT redirect URI
-            twitch_oauth_url = self.generate_twitch_oauth_url(discord_info)
+            # Send redirect response
+            redirect_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Redirecting to Twitch...</title>
+                <meta http-equiv="refresh" content="1;url={twitch_oauth_url}">
+            </head>
+            <body style="font-family: Arial; text-align: center; padding: 50px;">
+                <h2>🔄 Redirecting to Twitch...</h2>
+                <p>You will be redirected automatically.</p>
+                <p>If not, <a href="{twitch_oauth_url}">click here</a></p>
+            </body>
+            </html>
+            """
             
-            # Redirect to Twitch OAuth
-            self.send_response(302)
-            self.send_header('Location', twitch_oauth_url)
-            self.end_headers()
+            self.wfile.write(redirect_html.encode())
             
         except Exception as e:
             self.send_error_page(f"Discord callback error: {str(e)}")
@@ -52,20 +82,17 @@ class handler(BaseHTTPRequestHandler):
     def handle_twitch_callback(self, code, state):
         """Handle Twitch OAuth callback - show success"""
         try:
-            # Show success page
             self.send_success_page(state, code)
-            
         except Exception as e:
             self.send_error_page(f"Twitch callback error: {str(e)}")
     
     def generate_twitch_oauth_url(self, discord_info):
-        """Generate Twitch OAuth URL with CORRECT redirect URI"""
+        """Generate Twitch OAuth URL"""
         state = f"twitch_{discord_info}"
         
         params = {
             'response_type': 'code',
             'client_id': 'ccaxnoh0txxw0iulm4fxvq81km1dnd',
-            # FIX: Add https:// to the redirect URI
             'redirect_uri': 'https://asi-oauth-server-pj386vvcq-john-samelsons-projects.vercel.app/api/auth/twitch',
             'scope': 'clips:edit chat:read bits:read channel:read:redemptions',
             'state': state,
@@ -76,7 +103,7 @@ class handler(BaseHTTPRequestHandler):
         return f"https://id.twitch.tv/oauth2/authorize?{query_string}"
     
     def send_success_page(self, state, code):
-        """Send success page with connection details"""
+        """Send success page"""
         html = f"""
         <!DOCTYPE html>
         <html>
@@ -100,7 +127,7 @@ class handler(BaseHTTPRequestHandler):
                 .code-box {{
                     background: #f8f9fa; border: 2px solid #28a745; border-radius: 8px;
                     padding: 15px; margin: 20px 0; font-family: monospace;
-                    word-break: break-all; font-size: 14px;
+                    word-break: break-all; font-size: 14px; cursor: pointer;
                 }}
                 .instructions {{
                     background: #e3f2fd; padding: 15px; border-radius: 8px;
@@ -119,38 +146,36 @@ class handler(BaseHTTPRequestHandler):
                 <h1>Successfully Connected!</h1>
                 <p>Your Twitch account has been linked to Anasi</p>
                 
-                <div class="code-box">
+                <div class="code-box" onclick="selectCode()" title="Click to select code">
                     <strong>Authorization Code:</strong><br>
                     {code}
                 </div>
                 
                 <div class="instructions">
                     <strong>🎯 Next Steps:</strong><br>
-                    1. Copy the authorization code above<br>
-                    2. Go back to Discord<br>
-                    3. Use <code>/complete &lt;code&gt;</code> with that code<br>
-                    4. Start monitoring with <code>/monitor &lt;streamer&gt;</code>
+                    1. Click the code above to select it<br>
+                    2. Copy it (Ctrl+C / Cmd+C)<br>
+                    3. Go back to Discord<br>
+                    4. Use <code>/complete &lt;paste code here&gt;</code><br>
+                    5. Start monitoring with <code>/monitor &lt;streamer&gt;</code>
                 </div>
                 
                 <button class="close-btn" onclick="window.close()">Close Tab</button>
             </div>
             
             <script>
-                // Auto-select code for easy copying
-                document.querySelector('.code-box').addEventListener('click', function() {{
+                function selectCode() {{
+                    var codeBox = document.querySelector('.code-box');
                     var range = document.createRange();
-                    range.selectNode(this);
+                    range.selectNode(codeBox);
                     window.getSelection().removeAllRanges();
                     window.getSelection().addRange(range);
-                }});
+                }}
             </script>
         </body>
         </html>
         """
         
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
         self.wfile.write(html.encode())
     
     def send_error_page(self, error_message):
@@ -177,12 +202,10 @@ class handler(BaseHTTPRequestHandler):
                 <h1>Connection Failed</h1>
                 <div class="error-message">{error_message}</div>
                 <p>Go back to Discord and try <code>/connect</code> again</p>
+                <p><strong>Debug info:</strong> Check Vercel function logs for details</p>
             </div>
         </body>
         </html>
         """
         
-        self.send_response(400)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
         self.wfile.write(html.encode())
