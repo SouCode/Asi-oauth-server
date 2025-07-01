@@ -6,7 +6,7 @@ import os
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        """Handle OAuth callbacks from Twitch - FIXED VERSION"""
+        """Handle OAuth callbacks from Twitch - AUTOMATIC VERSION"""
         
         # Parse the URL and query parameters
         url_parts = urllib.parse.urlparse(self.path)
@@ -37,7 +37,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_error_page(f"Invalid callback endpoint: {url_parts.path}")
     
     def send_to_discord_bot(self, code, state):
-        """Send authorization code to Discord bot using urllib (no aiohttp needed)"""
+        """Send authorization code to Discord bot using urllib (no external dependencies)"""
         try:
             # Get Discord bot webhook URL from environment
             discord_bot_url = os.getenv('DISCORD_BOT_WEBHOOK_URL')
@@ -54,7 +54,8 @@ class handler(BaseHTTPRequestHandler):
                 'discord_user_id': discord_id,
                 'auth_code': code,
                 'state': state,
-                'source': 'vercel_oauth_server'
+                'source': 'vercel_oauth_server',
+                'timestamp': 'auto_processed'
             }
             
             # Send using urllib (no external dependencies)
@@ -90,7 +91,7 @@ class handler(BaseHTTPRequestHandler):
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Anasi - Connected Successfully!</title>
+            <title>✅ Anasi - Automatically Connected!</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
                 body {{
@@ -109,14 +110,15 @@ class handler(BaseHTTPRequestHandler):
                     to {{ opacity: 1; transform: translateY(0); }}
                 }}
                 .success-icon {{ font-size: 5rem; color: #00ff87; margin-bottom: 1rem; }}
-                h1 {{ color: #333; margin-bottom: 1rem; font-size: 2rem; }}
+                h1 {{ color: #333; margin-bottom: 1rem; font-size: 2.2rem; }}
                 .auto-message {{
                     background: #e8f5e8; border: 2px solid #00ff87; border-radius: 12px;
-                    padding: 20px; margin: 20px 0; font-size: 18px;
+                    padding: 25px; margin: 25px 0; font-size: 18px;
                 }}
                 .status-check {{
                     background: #f0f9ff; border-left: 4px solid #0ea5e9;
-                    padding: 15px; margin-top: 1rem; border-radius: 8px;
+                    padding: 20px; margin-top: 1.5rem; border-radius: 8px;
+                    text-align: left;
                 }}
                 .close-btn {{
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -134,46 +136,63 @@ class handler(BaseHTTPRequestHandler):
                     0% {{ transform: rotate(0deg); }}
                     100% {{ transform: rotate(360deg); }}
                 }}
+                .checkmark {{
+                    color: #00ff87; font-size: 1.2em; margin-right: 8px;
+                }}
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="success-icon">🎉</div>
-                <h1>Automatically Connected!</h1>
-                <p style="font-size: 1.2rem; color: #666;">Your Twitch account is being linked automatically</p>
+                <h1>🤖 Automatically Connected!</h1>
+                <p style="font-size: 1.3rem; color: #666; margin-bottom: 2rem;">
+                    Your Twitch account is being linked automatically
+                </p>
                 
                 <div class="auto-message">
                     <div class="spinner"></div>
                     <strong>✨ Magic in Progress!</strong><br>
-                    Your authorization was sent directly to Discord.<br>
+                    Your authorization was sent directly to your Discord bot.<br>
                     <strong>No manual steps required!</strong>
                 </div>
                 
                 <div class="status-check">
-                    <strong>🎯 What's Happening:</strong><br>
-                    1. ✅ <strong>Twitch authorized</strong> your account<br>
-                    2. 🔄 <strong>Anasi is processing</strong> your connection<br>
-                    3. 💬 <strong>Discord notification</strong> coming soon<br>
-                    4. 🚀 <strong>Ready to monitor</strong> streamers!
+                    <strong>🎯 What's Happening Right Now:</strong><br><br>
+                    <span class="checkmark">✅</span><strong>Twitch authorized</strong> your account<br>
+                    <span class="checkmark">🔄</span><strong>Anasi is processing</strong> your connection<br>
+                    <span class="checkmark">💬</span><strong>Discord notification</strong> incoming...<br>
+                    <span class="checkmark">🚀</span><strong>Ready to monitor</strong> streamers in ~5 seconds!
                 </div>
                 
-                <div style="margin-top: 1.5rem; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
-                    <strong>🎮 Next Steps:</strong><br>
-                    Return to Discord and use <code>/monitor &lt;streamer&gt;</code> to start!
+                <div style="margin-top: 2rem; padding: 20px; background: #fff3cd; border-radius: 12px; border: 1px solid #ffeaa7;">
+                    <strong>🎮 What's Next:</strong><br>
+                    Return to Discord and use <code>/monitor &lt;streamer&gt;</code> to start monitoring viral moments!
                 </div>
                 
-                <button class="close-btn" onclick="window.close()">Return to Discord</button>
+                <button class="close-btn" onclick="window.close()">🔙 Return to Discord</button>
                 
-                <p style="margin-top: 1rem; font-size: 0.9rem; color: #888;">
-                    Professional OAuth via Vercel + Railway
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #888;">
+                    Professional OAuth • Powered by Vercel + Railway
                 </p>
             </div>
             
             <script>
-                // Auto-close after 8 seconds
+                // Auto-close after 10 seconds
                 setTimeout(function() {{
                     window.close();
-                }}, 8000);
+                }}, 10000);
+                
+                // Update status after 3 seconds
+                setTimeout(function() {{
+                    var statusDiv = document.querySelector('.status-check');
+                    statusDiv.innerHTML = `
+                        <strong>🎯 Processing Complete:</strong><br><br>
+                        <span class="checkmark">✅</span><strong>Twitch authorized</strong> your account<br>
+                        <span class="checkmark">✅</span><strong>Anasi processed</strong> your connection<br>
+                        <span class="checkmark">✅</span><strong>Discord notification</strong> sent<br>
+                        <span class="checkmark">✅</span><strong>Ready to monitor</strong> streamers!
+                    `;
+                }}, 3000);
             </script>
         </body>
         </html>
@@ -185,12 +204,12 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode())
     
     def send_manual_fallback_page(self, code, state):
-        """Fallback manual page if automatic fails - IMPROVED"""
+        """Fallback manual page if automatic fails"""
         html = f"""
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Anasi - Manual Connection</title>
+            <title>⚠️ Anasi - Manual Connection Required</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
                 body {{
@@ -200,60 +219,70 @@ class handler(BaseHTTPRequestHandler):
                     align-items: center; min-height: 100vh;
                 }}
                 .container {{
-                    background: white; padding: 2rem; border-radius: 15px;
+                    background: white; padding: 2.5rem; border-radius: 15px;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center;
-                    max-width: 500px; margin: 20px;
+                    max-width: 550px; margin: 20px;
                 }}
                 .warning-icon {{ font-size: 4rem; color: #ff9800; margin-bottom: 1rem; }}
                 h1 {{ color: #333; margin-bottom: 1rem; }}
                 .code-box {{
-                    background: #f8f9fa; border: 3px solid #ff9800; border-radius: 8px;
-                    padding: 20px; margin: 20px 0; font-family: monospace;
+                    background: #f8f9fa; border: 3px solid #ff9800; border-radius: 12px;
+                    padding: 20px; margin: 20px 0; font-family: 'Courier New', monospace;
                     word-break: break-all; font-size: 14px; cursor: pointer;
                     font-weight: bold; max-height: 120px; overflow-y: auto;
+                    line-height: 1.4;
                 }}
                 .code-box:hover {{
                     background: #e9ecef; border-color: #e65100;
                 }}
                 .instructions {{
-                    background: #fff3e0; padding: 15px; border-radius: 8px;
-                    margin-top: 1rem; border-left: 4px solid #ff9800;
+                    background: #fff3e0; padding: 20px; border-radius: 12px;
+                    margin-top: 1.5rem; border-left: 4px solid #ff9800;
                     text-align: left;
                 }}
                 .copy-btn {{
                     background: #ff9800; color: white; border: none;
-                    padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                    margin: 10px 5px; font-size: 16px; transition: background 0.2s;
+                    padding: 15px 30px; border-radius: 10px; cursor: pointer;
+                    margin: 15px 5px; font-size: 16px; transition: all 0.2s;
+                    font-weight: bold;
                 }}
-                .copy-btn:hover {{ background: #e65100; }}
+                .copy-btn:hover {{ background: #e65100; transform: translateY(-2px); }}
                 .close-btn {{
                     background: #6c757d; color: white; border: none;
-                    padding: 10px 20px; border-radius: 8px; cursor: pointer;
-                    margin-top: 15px; font-size: 14px;
+                    padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                    margin-top: 20px; font-size: 14px;
                 }}
+                .step {{ margin: 8px 0; }}
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="warning-icon">⚠️</div>
                 <h1>Manual Connection Required</h1>
-                <p>Automatic processing is temporarily unavailable. Please complete manually:</p>
+                <p style="font-size: 1.1rem; color: #666;">
+                    Automatic processing is temporarily unavailable.<br>
+                    Please complete the connection manually:
+                </p>
                 
                 <div class="code-box" onclick="selectCode()" title="Click to select authorization code">
                     {code}
                 </div>
                 
-                <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+                <button class="copy-btn" onclick="copyCode()">📋 Copy Authorization Code</button>
                 
                 <div class="instructions">
-                    <strong>📋 Manual Steps:</strong><br>
-                    1. <strong>Copy the code above</strong> (click the box or copy button)<br>
-                    2. <strong>Go back to Discord</strong><br>
-                    3. <strong>Use this command:</strong> <code>/complete {code[:15]}...</code><br>
-                    4. <strong>Paste the full code</strong> when prompted
+                    <strong>📋 Manual Connection Steps:</strong><br><br>
+                    <div class="step"><strong>1.</strong> Copy the authorization code above ⬆️</div>
+                    <div class="step"><strong>2.</strong> Return to Discord</div>
+                    <div class="step"><strong>3.</strong> Use this command: <code>/complete &lt;paste-code-here&gt;</code></div>
+                    <div class="step"><strong>4.</strong> Your account will be linked instantly!</div>
                 </div>
                 
-                <button class="close-btn" onclick="window.close()">Close This Tab</button>
+                <button class="close-btn" onclick="window.close()">🔙 Close This Tab</button>
+                
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #888;">
+                    Don't worry - manual connection works just as well! 👍
+                </p>
             </div>
             
             <script>
@@ -274,19 +303,17 @@ class handler(BaseHTTPRequestHandler):
                         navigator.clipboard.writeText(code).then(function() {{
                             var btn = document.querySelector('.copy-btn');
                             var originalText = btn.textContent;
-                            btn.textContent = '✅ Copied!';
+                            btn.textContent = '✅ Copied to Clipboard!';
                             btn.style.background = '#4caf50';
                             setTimeout(function() {{
                                 btn.textContent = originalText;
                                 btn.style.background = '#ff9800';
-                            }}, 2000);
+                            }}, 2500);
                         }}).catch(function() {{
-                            // Fallback for older browsers
                             selectCode();
                             alert('Code selected! Press Ctrl+C (or Cmd+C on Mac) to copy.');
                         }});
                     }} else {{
-                        // Fallback for older browsers
                         selectCode();
                         alert('Code selected! Press Ctrl+C (or Cmd+C on Mac) to copy.');
                     }}
@@ -307,12 +334,12 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode())
     
     def send_error_page(self, error_message):
-        """Send error page - IMPROVED"""
+        """Send error page"""
         html = f"""
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Anasi - Connection Error</title>
+            <title>❌ Anasi - Connection Error</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
                 body {{ 
@@ -322,21 +349,26 @@ class handler(BaseHTTPRequestHandler):
                     align-items: center; min-height: 100vh;
                 }}
                 .container {{ 
-                    background: white; padding: 2rem; border-radius: 15px; 
-                    max-width: 400px; margin: 0 auto; text-align: center;
+                    background: white; padding: 2.5rem; border-radius: 15px; 
+                    max-width: 450px; margin: 0 auto; text-align: center;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
                 }}
                 .error-icon {{ font-size: 4rem; color: #dc3545; margin-bottom: 1rem; }}
                 h1 {{ color: #333; margin-bottom: 1rem; }}
                 .error-message {{ 
-                    background: #f8d7da; padding: 15px; border-radius: 8px; 
+                    background: #f8d7da; padding: 20px; border-radius: 12px; 
                     color: #721c24; margin: 20px 0; border: 1px solid #f5c6cb;
+                    font-weight: bold;
+                }}
+                .retry-info {{
+                    background: #e3f2fd; padding: 15px; border-radius: 8px;
+                    margin-top: 1rem; color: #0d47a1;
                 }}
                 .retry-btn {{
                     background: #007bff; color: white; border: none;
-                    padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                    margin-top: 15px; font-size: 16px; text-decoration: none;
-                    display: inline-block;
+                    padding: 15px 30px; border-radius: 10px; cursor: pointer;
+                    margin-top: 20px; font-size: 16px; text-decoration: none;
+                    display: inline-block; font-weight: bold;
                 }}
                 .retry-btn:hover {{ background: #0056b3; }}
             </style>
@@ -346,11 +378,17 @@ class handler(BaseHTTPRequestHandler):
                 <div class="error-icon">❌</div>
                 <h1>Connection Failed</h1>
                 <div class="error-message">{error_message}</div>
-                <p>This is usually a temporary issue. Please try connecting again.</p>
-                <p><strong>Next steps:</strong><br>
-                1. Go back to Discord<br>
-                2. Use <code>/connect</code> to try again<br>
-                3. If the problem persists, contact support</p>
+                
+                <div class="retry-info">
+                    <strong>🔄 What to do next:</strong><br><br>
+                    1. Go back to Discord<br>
+                    2. Use <code>/connect</code> to try again<br>
+                    3. If the problem persists, the manual method always works!
+                </div>
+                
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #666;">
+                    This is usually a temporary issue and resolves quickly.
+                </p>
             </div>
         </body>
         </html>
